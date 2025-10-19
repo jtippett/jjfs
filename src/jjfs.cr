@@ -1,11 +1,9 @@
-# CLI entry point for jjfs
+require "./cli"
+require "./config"
+require "./storage"
 
 module JJFS
   VERSION = "0.1.0"
-
-  def self.run
-    puts "jjfs v#{VERSION}"
-  end
 end
 
-JJFS.run
+JJFS::CLI.run(ARGV)
