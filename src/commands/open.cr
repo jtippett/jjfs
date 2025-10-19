@@ -37,22 +37,22 @@ module JJFS::Commands
       # Check if already in .gitignore
       if File.exists?(gitignore_path)
         content = File.read(gitignore_path)
-        return if content.lines.any? { |line| line.strip == mount_name || line.strip == "#{mount_name}/" }
+        return if content.lines.any? { |line| line.strip == mount_name || line.strip == "/#{mount_name}" }
       end
 
       # Offer to add to .gitignore
       puts "\n⚠️  Warning: You're opening a mount inside a git repository."
       puts "   To avoid polluting this repo with synced content, add to .gitignore?"
-      puts "   Add '#{mount_name}/' to #{gitignore_path}? [Y/n]"
+      puts "   Add '/#{mount_name}' to #{gitignore_path}? [Y/n]"
       print "> "
 
       response = gets.try(&.strip.downcase) || "y"
 
       if response.empty? || response == "y" || response == "yes"
         add_to_gitignore(gitignore_path, mount_name)
-        puts "✓ Added '#{mount_name}/' to .gitignore"
+        puts "✓ Added '/#{mount_name}' to .gitignore"
       else
-        puts "Skipped - remember to manually add '#{mount_name}/' to .gitignore!"
+        puts "Skipped - remember to manually add '/#{mount_name}' to .gitignore!"
       end
     end
 
@@ -77,9 +77,9 @@ module JJFS::Commands
       if File.exists?(gitignore_path)
         content = File.read(gitignore_path)
         content += "\n" unless content.ends_with?("\n")
-        File.write(gitignore_path, content + "#{mount_name}/\n")
+        File.write(gitignore_path, content + "/#{mount_name}\n")
       else
-        File.write(gitignore_path, "#{mount_name}/\n")
+        File.write(gitignore_path, "/#{mount_name}\n")
       end
     end
   end
