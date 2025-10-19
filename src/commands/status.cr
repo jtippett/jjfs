@@ -11,6 +11,7 @@ module JJFS::Commands
 
       unless client.daemon_running?
         puts "Daemon: not running"
+        puts "Start with: jjfs start"
         return false
       end
 
@@ -21,6 +22,10 @@ module JJFS::Commands
       puts "Mounts: #{result["mounts"]}"
 
       true
+    rescue ex : Socket::ConnectError
+      puts "Daemon: not running (connection refused)"
+      puts "Start with: jjfs start"
+      false
     rescue ex
       puts "Error: #{ex.message}"
       false
