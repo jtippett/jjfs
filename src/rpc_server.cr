@@ -3,7 +3,7 @@ require "./storage"
 
 module JJFS
   class RPCServer
-    def initialize(@storage : Storage)
+    def initialize(@storage : Storage, @sync_coordinator : SyncCoordinator? = nil)
     end
 
     def handle(request : String) : String

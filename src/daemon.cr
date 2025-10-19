@@ -1,11 +1,13 @@
 require "socket"
 require "./storage"
 require "./rpc_server"
+require "./sync_coordinator"
 
 module JJFS
   class Daemon
     @running = false
     @server : UNIXServer?
+    @sync_coordinator : SyncCoordinator?
 
     def initialize(@storage : Storage)
     end
@@ -19,7 +21,11 @@ module JJFS
 
       puts "jjfsd started, listening on #{@storage.socket_path}"
 
-      rpc = RPCServer.new(@storage)
+      # Start sync coordinator
+      @sync_coordinator = SyncCoordinator.new(@storage)
+      @sync_coordinator.try &.start
+
+      rpc = RPCServer.new(@storage, @sync_coordinator)
 
       while @running
         if server = @server
@@ -32,6 +38,7 @@ module JJFS
 
     def stop
       @running = false
+      @sync_coordinator.try &.stop
       @server.try &.close
       release_lock
       File.delete(@storage.socket_path) if File.exists?(@storage.socket_path)
