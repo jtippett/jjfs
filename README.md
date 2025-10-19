@@ -1,22 +1,22 @@
 # jjfs - Eventually Consistent Multi-Mount Filesystem
 
-FUSE-based filesystem that allows multiple directories to be live, eventually-consistent views of the same Jujutsu repository.
+FUSE-based filesystem that mounts multiple directories as live, eventually-consistent views of the same Jujutsu repository.
 
 ## Features
 
-- **Multi-mount:** Mount same repo in unlimited locations
+- **Multi-mount:** Mount the same repo in unlimited locations
 - **Eventually consistent:** Changes propagate automatically (<2s)
-- **Zero maintenance:** Auto-syncs, auto-starts on login
-- **Remote backup:** Push/pull to GitHub/GitLab
-- **Cross-platform:** macOS and Linux
-- **Git-aware:** Automatically detects git repos and offers to update .gitignore
+- **Zero maintenance:** Auto-syncs and auto-starts on login
+- **Remote backup:** Push and pull to GitHub or GitLab
+- **Cross-platform:** Runs on macOS and Linux
+- **Git-aware:** Detects git repos and offers to update .gitignore
 
 ## Status
 
 **Version:** 0.1.0  
 **Status:** Ready for production use
 
-jjfs provides a stable foundation for multi-location file synchronization using Jujutsu's workspace feature. The sync engine has been tested with multiple concurrent mounts and handles conflicts gracefully.
+jjfs provides a stable foundation for multi-location file synchronization using Jujutsu's workspace feature. The sync engine handles multiple concurrent mounts and resolves conflicts gracefully.
 
 ## Installation
 
@@ -105,12 +105,7 @@ jjfs install                  # Install system service
 
 ### How It Works
 
-1. **Each mount is a jj workspace** - Uses jujutsu's built-in workspace feature
-2. **File changes trigger commits** - fswatch/inotify detects changes, commits them
-3. **Workspaces auto-update** - `jj workspace update-stale` propagates changes
-4. **Remotes sync periodically** - Pushes/pulls every 5 minutes (configurable)
-5. **Conflicts are preserved** - Jujutsu conflict markers appear in files
-6. **Git integration** - Detects when mounting inside a git repo and offers to add the mount to .gitignore
+jjfs builds on Jujutsu's workspace feature to synchronize files across mounts. Each mount represents a jj workspace. When you change files, fswatch or inotify detects the changes and commits them. The system then runs `jj workspace update-stale` to propagate changes across workspaces. Every 5 minutes (configurable), the system pushes and pulls to remote repositories. Jujutsu preserves conflicts by inserting conflict markers into files. When you mount inside a git repo, jjfs detects this and offers to add the mount to .gitignore.
 
 ### Configuration
 
@@ -196,7 +191,7 @@ jjfs close /path/to/mount
 jjfs open repo-name /path/to/mount
 ```
 
-### Changes not syncing
+### Changes fail to sync
 ```bash
 # Check daemon is running
 jjfs status
@@ -209,7 +204,7 @@ jjfs sync repo-name
 ```
 
 ### Conflicts
-If you edit the same file in multiple mounts simultaneously, jj will create conflict markers:
+When you edit the same file in multiple mounts simultaneously, jj creates conflict markers:
 ```
 <<<<<<< Conflict 1 of 1
 %%%%%%% Changes from abc123
@@ -219,16 +214,17 @@ Content from mount B
 >>>>>>> Conflict 1 of 1 ends
 ```
 
-Resolve by editing the file to keep the desired content, then save.
+Resolve conflicts by editing the file to keep the desired content, then save.
 
 ## Architecture
 
-- **CLI (`jjfs`)**: User-facing commands
-- **Daemon (`jjfsd`)**: Long-running process managing mounts and sync
-- **RPC**: JSON-RPC over Unix socket for CLI-daemon communication
-- **Mount Manager**: Creates/destroys jj workspaces and bindfs mounts
-- **Sync Coordinator**: Watches for changes, commits, and propagates to other workspaces
-- **Remote Syncer**: Periodically pushes/pulls to git remotes
+jjfs consists of six main components:
+- **CLI (`jjfs`)**: Handles user-facing commands
+- **Daemon (`jjfsd`)**: Runs as a long-running process managing mounts and sync
+- **RPC**: Uses JSON-RPC over Unix socket for CLI-daemon communication
+- **Mount Manager**: Creates and destroys jj workspaces and bindfs mounts
+- **Sync Coordinator**: Watches for changes, commits them, and propagates to other workspaces
+- **Remote Syncer**: Pushes and pulls to git remotes periodically
 
 ## Development
 
