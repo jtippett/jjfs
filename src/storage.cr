@@ -3,7 +3,7 @@ require "./config"
 
 module JJFS
   class Storage
-    DEFAULT_ROOT = File.expand_path("~/.jjfs")
+    DEFAULT_ROOT = File.join(ENV["HOME"], ".jjfs")
 
     getter root : String
     getter config : Config

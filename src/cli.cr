@@ -1,5 +1,6 @@
 require "option_parser"
 require "./commands/init"
+require "./commands/status"
 require "./storage"
 
 module JJFS
@@ -68,7 +69,9 @@ module JJFS
       when :list
         puts "TODO: list mounts"
       when :status
-        puts "TODO: daemon status"
+        storage = Storage.new
+        cmd = Commands::Status.new(storage)
+        exit(cmd.execute ? 0 : 1)
       when :start
         puts "TODO: start daemon"
       when :stop

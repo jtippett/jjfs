@@ -1,11 +1,12 @@
-# Daemon entry point for jjfsd
-module JJFS
-  class Daemon
-    def run
-      puts "jjfsd starting..."
-    end
-  end
+require "./daemon"
+require "./storage"
+
+storage = JJFS::Storage.new
+daemon = JJFS::Daemon.new(storage)
+
+Signal::INT.trap do
+  daemon.stop
+  exit
 end
 
-daemon = JJFS::Daemon.new
-daemon.run
+daemon.start
