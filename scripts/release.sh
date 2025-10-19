@@ -30,15 +30,30 @@ fi
 CURRENT_VERSION=$(grep '^version:' shard.yml | awk '{print $2}')
 echo "📌 Current version: ${CURRENT_VERSION}"
 
-# Increment patch version
-IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
-NEW_VERSION="${major}.${minor}.$((patch + 1))"
+# Check if version is already set in src/jjfs.cr (might be ahead of shard.yml)
+SOURCE_VERSION=$(grep 'VERSION = ' src/jjfs.cr | sed 's/.*VERSION = "\(.*\)"/\1/')
+if [[ "$SOURCE_VERSION" != "$CURRENT_VERSION" ]]; then
+  echo "⚠️  Note: src/jjfs.cr has version ${SOURCE_VERSION} (different from shard.yml)"
+  echo "📝 Using source version: ${SOURCE_VERSION}"
+  NEW_VERSION="$SOURCE_VERSION"
+  read -p "   Use this version? [Y/n] " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Nn]$ ]]; then
+    read -p "   Enter version: " NEW_VERSION
+  fi
+else
+  # Increment patch version
+  IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+  SUGGESTED_VERSION="${major}.${minor}.$((patch + 1))"
 
-echo "📝 New version: ${NEW_VERSION}"
-read -p "   Use this version? [Y/n] " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  read -p "   Enter version: " NEW_VERSION
+  echo "📝 Suggested version: ${SUGGESTED_VERSION}"
+  read -p "   Use this version? [Y/n] " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Nn]$ ]]; then
+    read -p "   Enter version: " NEW_VERSION
+  else
+    NEW_VERSION="$SUGGESTED_VERSION"
+  fi
 fi
 
 echo
@@ -58,15 +73,32 @@ echo "📝 Updating src/jjfs.cr..."
 sed -i.bak "s/VERSION = \".*\"/VERSION = \"${NEW_VERSION}\"/" src/jjfs.cr
 rm src/jjfs.cr.bak
 
-# Commit version bump
-echo "📝 Committing version bump..."
-git add shard.yml src/jjfs.cr
-git commit -m "chore: bump version to ${NEW_VERSION}"
-git push origin master
+# Commit version bump (only if changed)
+if git diff --quiet shard.yml src/jjfs.cr; then
+  echo "📝 Version already set, no changes to commit"
+  RELEASE_SHA=$(git rev-parse HEAD)
+  RELEASE_SHORT=$(git rev-parse --short HEAD)
+else
+  echo "📝 Committing version bump..."
+  git add shard.yml src/jjfs.cr
+  git commit -m "chore: bump version to ${NEW_VERSION}"
+  git push origin master
 
-# Get the new commit SHA (after version bump)
-RELEASE_SHA=$(git rev-parse HEAD)
-RELEASE_SHORT=$(git rev-parse --short HEAD)
+  # Get the new commit SHA (after version bump)
+  RELEASE_SHA=$(git rev-parse HEAD)
+  RELEASE_SHORT=$(git rev-parse --short HEAD)
+fi
+
+# Update or create git tag
+if git rev-parse "v${NEW_VERSION}" >/dev/null 2>&1; then
+  echo "📝 Tag v${NEW_VERSION} exists, updating it..."
+  git tag -f -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
+  git push origin "v${NEW_VERSION}" --force
+else
+  echo "📝 Creating tag v${NEW_VERSION}..."
+  git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
+  git push origin "v${NEW_VERSION}"
+fi
 
 echo
 echo "📦 Updating Homebrew formula..."
