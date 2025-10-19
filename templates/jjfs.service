@@ -1,0 +1,13 @@
+[Unit]
+Description=jjfs daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart={{JJFSD_PATH}}
+Restart=on-failure
+StandardOutput=append:{{HOME}}/.jjfs/daemon.log
+StandardError=append:{{HOME}}/.jjfs/daemon.error.log
+
+[Install]
+WantedBy=default.target

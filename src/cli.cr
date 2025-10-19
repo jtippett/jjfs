@@ -3,6 +3,10 @@ require "./commands/init"
 require "./commands/status"
 require "./commands/open"
 require "./commands/close"
+require "./commands/remote"
+require "./commands/install"
+require "./commands/start"
+require "./commands/stop"
 require "./storage"
 
 module JJFS
@@ -86,15 +90,20 @@ module JJFS
         cmd = Commands::Status.new(storage)
         exit(cmd.execute ? 0 : 1)
       when :start
-        puts "TODO: start daemon"
+        cmd = Commands::Start.new
+        exit(cmd.execute ? 0 : 1)
       when :stop
-        puts "TODO: stop daemon"
+        cmd = Commands::Stop.new
+        exit(cmd.execute ? 0 : 1)
       when :sync
         puts "TODO: sync #{cli.args.first? || "all"}"
       when :remote
-        puts "TODO: remote #{cli.args}"
+        storage = Storage.new
+        cmd = Commands::Remote.new(storage, cli.args)
+        exit(cmd.execute ? 0 : 1)
       when :install
-        puts "TODO: install service"
+        cmd = Commands::Install.new
+        exit(cmd.execute ? 0 : 1)
       else
         show_help
       end
