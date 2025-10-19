@@ -9,6 +9,7 @@ FUSE-based filesystem that allows multiple directories to be live, eventually-co
 - **Zero maintenance:** Auto-syncs, auto-starts on login
 - **Remote backup:** Push/pull to GitHub/GitLab
 - **Cross-platform:** macOS and Linux
+- **Git-aware:** Automatically detects git repos and offers to update .gitignore
 
 ## Status
 
@@ -109,6 +110,7 @@ jjfs install                  # Install system service
 3. **Workspaces auto-update** - `jj workspace update-stale` propagates changes
 4. **Remotes sync periodically** - Pushes/pulls every 5 minutes (configurable)
 5. **Conflicts are preserved** - Jujutsu conflict markers appear in files
+6. **Git integration** - Detects when mounting inside a git repo and offers to add the mount to .gitignore
 
 ### Configuration
 

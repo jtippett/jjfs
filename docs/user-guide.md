@@ -46,6 +46,24 @@ This guide covers common workflows, best practices, and troubleshooting for jjfs
    # Output: Daemon: running
    ```
 
+### Git Repository Integration
+
+jjfs is git-aware and will automatically detect when you're mounting inside an existing git repository. When this happens, it will offer to add the mount directory to your `.gitignore` file to prevent synced content from polluting your git repository.
+
+```bash
+cd ~/my-project  # An existing git repo
+jjfs open notes ./my-notes
+
+# Output:
+# ⚠️  Warning: You're opening a mount inside a git repository.
+#    To avoid polluting this repo with synced content, add to .gitignore?
+#    Add '/my-notes' to ~/my-project/.gitignore? [Y/n]
+# > y
+# ✓ Added '/my-notes' to .gitignore
+```
+
+This feature helps you keep your jjfs mounts separate from your existing git repositories.
+
 ### Your First Repo
 
 Let's create a simple note-taking setup:
@@ -331,6 +349,18 @@ jj git export  # Export jj commits to git
 git log  # View git history
 git push origin main  # Manual push (daemon does this automatically)
 ```
+
+### Mounting Inside Git Repositories
+
+If you mount a jjfs directory inside an existing git repository, jjfs will detect this and offer to add the mount to `.gitignore`:
+
+```bash
+cd ~/my-git-project
+jjfs open notes ./project-notes
+# jjfs offers to add '/project-notes' to .gitignore
+```
+
+This prevents your jjfs-synced content from being tracked by the outer git repository. If you decline the automatic addition, remember to manually add the mount directory to `.gitignore` to avoid confusion.
 
 ## Troubleshooting
 

@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Mount via bindfs**: FUSE-based pass-through mounting for file access
 - **Configuration management**: JSON-based config in `~/.jjfs/config.json`
 - **Logging**: Structured logging to `~/.jjfs/sync.log`
+- **Git repository detection**: Automatically detects when mounting inside a git repository and offers to add mount to `.gitignore`
 
 #### Testing
 - **Unit tests**: Full test coverage for core components
