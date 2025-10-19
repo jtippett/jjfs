@@ -13,26 +13,36 @@ FUSE-based filesystem that mounts multiple directories as live, eventually-consi
 
 ## Status
 
-**Version:** 0.1.0  
-**Status:** Ready for production use
+**Version:** 0.1.0
+**Status:** Working beta
 
 jjfs provides a stable foundation for multi-location file synchronization using Jujutsu's workspace feature. The sync engine handles multiple concurrent mounts and resolves conflicts gracefully.
 
 ## Installation
 
-### Requirements
+### via Homebrew (macOS/Linux)
+
+```bash
+brew install jtippett/jjfs
+```
+
+This installs both `jjfs` and `jjfsd`. Note: On macOS, you'll need to install bindfs separately (see caveats after installation).
+
+### Build from Source
+
+#### Requirements
 
 - Crystal 1.10+
 - Jujutsu (`jj`) - [Install guide](https://github.com/martinvonz/jj#installation)
 - bindfs (FUSE filesystem for pass-through mounting)
-- **macOS:** fswatch (`brew install fswatch bindfs`)
+- **macOS:** fswatch (`brew install fswatch`)
 - **Linux:** inotify (built-in), bindfs (`apt-get install bindfs` or `yum install bindfs`)
 
-### Build from Source
+#### Build Steps
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/jjfs.git
+git clone https://github.com/jtippett/jjfs.git
 cd jjfs
 
 # Install dependencies (if any)
