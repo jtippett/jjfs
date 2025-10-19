@@ -18,6 +18,11 @@ module JJFS
       @storage.ensure_directories
       acquire_lock
 
+      # Clean up stale socket file if it exists
+      if File.exists?(@storage.socket_path)
+        File.delete(@storage.socket_path)
+      end
+
       @running = true
       @server = UNIXServer.new(@storage.socket_path)
 
@@ -64,12 +69,28 @@ module JJFS
 
     private def acquire_lock
       if File.exists?(@storage.lock_path)
-        pid = File.read(@storage.lock_path).strip
-        puts "Error: Daemon already running (PID: #{pid})"
-        exit(1)
+        pid = File.read(@storage.lock_path).strip.to_i?
+
+        # Check if process actually exists
+        if pid && process_exists?(pid)
+          puts "Error: Daemon already running (PID: #{pid})"
+          exit(1)
+        else
+          # Stale lock file - clean it up
+          puts "Removing stale lock file (PID: #{pid || "invalid"})"
+          File.delete(@storage.lock_path)
+        end
       end
 
       File.write(@storage.lock_path, Process.pid.to_s)
+    end
+
+    private def process_exists?(pid : Int32) : Bool
+      # Use kill -0 to check if process exists (doesn't actually kill)
+      result = Process.run("kill", ["-0", pid.to_s],
+                          output: Process::Redirect::Close,
+                          error: Process::Redirect::Close)
+      result.success?
     end
 
     private def release_lock
