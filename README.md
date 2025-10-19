@@ -23,10 +23,16 @@ jjfs provides a stable foundation for multi-location file synchronization using 
 ### via Homebrew (macOS/Linux)
 
 ```bash
-brew install jtippett/jjfs
+brew install jtippett/jjfs/jjfs
 ```
 
 This installs both `jjfs` and `jjfsd`. Note: On macOS, you'll need to install bindfs separately (see caveats after installation).
+
+Alternatively, tap first then install:
+```bash
+brew tap jtippett/jjfs
+brew install jjfs
+```
 
 ### Build from Source
 
