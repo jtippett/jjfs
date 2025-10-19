@@ -38,9 +38,9 @@ This guide covers common workflows, best practices, and troubleshooting for jjfs
    ```bash
    jjfs install
    ```
-   This configures jjfsd to start automatically on login (using launchd on macOS or systemd on Linux).
+   This configures jjfsd to start automatically on login using launchd on macOS or systemd on Linux.
 
-4. **Verify daemon is running:**
+4. **Verify the daemon runs:**
    ```bash
    jjfs status
    # Output: Daemon: running
@@ -48,7 +48,7 @@ This guide covers common workflows, best practices, and troubleshooting for jjfs
 
 ### Git Repository Integration
 
-jjfs is git-aware and will automatically detect when you're mounting inside an existing git repository. When this happens, it will offer to add the mount directory to your `.gitignore` file to prevent synced content from polluting your git repository.
+jjfs detects when you mount inside an existing git repository. It offers to add the mount directory to your `.gitignore` file to prevent synced content from polluting your git repository.
 
 ```bash
 cd ~/my-project  # An existing git repo
@@ -62,11 +62,11 @@ jjfs open notes ./my-notes
 # ✓ Added '/my-notes' to .gitignore
 ```
 
-This feature helps you keep your jjfs mounts separate from your existing git repositories.
+This feature keeps your jjfs mounts separate from your existing git repositories.
 
 ### Your First Repo
 
-Let's create a simple note-taking setup:
+Create a simple note-taking setup:
 
 ```bash
 # Initialize a repo called "notes"
@@ -89,16 +89,16 @@ cat ~/Desktop/quick-notes/README.md
 ### Understanding the Basics
 
 **How jjfs works:**
-- Each "repo" is a Jujutsu repository stored in `~/.jjfs/repos/<name>/`
-- Each "mount" is a Jujutsu workspace for that repo
-- Changes in any mount are automatically committed and synced to other mounts
-- Sync happens within ~2 seconds of file changes
+- jjfs stores each "repo" as a Jujutsu repository in `~/.jjfs/repos/<name>/`
+- Each "mount" creates a Jujutsu workspace for that repo
+- jjfs automatically commits and syncs changes in any mount to other mounts
+- Sync happens within 2 seconds of file changes
 
 **Key concepts:**
-- **Repo**: A Jujutsu repository (you can have multiple: notes, code, docs, etc.)
-- **Mount**: A filesystem location where you can access/edit files
-- **Workspace**: The underlying jj workspace (managed automatically)
-- **Sync**: The process of propagating changes between mounts
+- **Repo**: A Jujutsu repository (you can create multiple: notes, code, docs)
+- **Mount**: A filesystem location where you access and edit files
+- **Workspace**: The underlying jj workspace (jjfs manages this automatically)
+- **Sync**: The process that propagates changes between mounts
 
 ## Common Workflows
 
@@ -134,7 +134,7 @@ jjfs remote add git@github.com:yourusername/notes.git --repo=notes
 jjfs open notes ~/Documents/notes
 echo "# Shared Notes" > ~/Documents/notes/README.md
 
-# Daemon will automatically push to GitHub every 5 minutes
+# Daemon automatically pushes to GitHub every 5 minutes
 # Or force immediate push:
 jjfs sync notes
 ```
@@ -151,10 +151,10 @@ jj git import  # Import git history into jj
 jjfs remote add git@github.com:yourusername/notes.git --repo=notes
 jjfs open notes ~/Documents/notes
 
-# Changes will sync via GitHub automatically
+# Changes sync via GitHub automatically
 ```
 
-**Note:** For proper multi-device sync, you need to manually set up the git repo on each device. jjfs handles the push/pull automatically once configured.
+**Note:** You must manually set up the git repo on each device for multi-device sync. Once configured, jjfs handles push and pull automatically.
 
 ### Workflow 3: Multiple Projects
 
@@ -174,7 +174,7 @@ jjfs open code-snippets ~/Code/snippets
 # View all mounts
 jjfs list
 
-# Each repo is independent - changes don't cross repos
+# Each repo operates independently—changes stay within their repo
 ```
 
 ### Workflow 4: Temporary Project View
@@ -195,7 +195,7 @@ jjfs close ~/temp-notes-access
 
 ### Workflow 5: Development Workflow
 
-**Use case:** Test code in one location while keeping stable version in another.
+**Use case:** Test code in one location while keeping a stable version in another.
 
 ```bash
 jjfs init my-project
@@ -206,7 +206,7 @@ jjfs open my-project ~/dev/experimental
 cd ~/dev/experimental
 # ... make risky changes ...
 
-# If they work, they're automatically in ~/dev/stable too
+# Your changes appear automatically in ~/dev/stable
 # If you break something, jj's conflict resolution helps you fix it
 ```
 
@@ -242,8 +242,8 @@ jjfs stores its configuration in `~/.jjfs/config.json`.
 ### Configuration Options
 
 **Repo settings:**
-- `path`: Location of the jj repository (managed by jjfs)
-- `remote`: Git remote URL for push/pull (optional)
+- `path`: Location of the jj repository (jjfs manages this)
+- `remote`: Git remote URL for push and pull (optional)
 - `sync_interval`: Seconds between file change detection (default: 2)
 - `push_interval`: Seconds between remote syncs (default: 300)
 
@@ -255,7 +255,7 @@ jjfs stores its configuration in `~/.jjfs/config.json`.
 
 ### Modifying Configuration
 
-**Don't edit the config file directly while the daemon is running.** Instead:
+Stop the daemon before you edit the config file directly:
 
 ```bash
 # Stop daemon
@@ -268,7 +268,7 @@ nano ~/.jjfs/config.json
 jjfs start
 ```
 
-Or use the CLI commands which handle this automatically:
+Use CLI commands to modify configuration automatically:
 ```bash
 jjfs remote add <url> --repo=<name>
 jjfs open <repo> <path>
@@ -290,7 +290,7 @@ jjfs sync notes
 
 ### Viewing Jujutsu History
 
-Since jjfs uses jj under the hood, you can use jj commands directly:
+jjfs uses jj under the hood, so you can use jj commands directly:
 
 ```bash
 cd ~/.jjfs/repos/notes
@@ -300,7 +300,7 @@ jj show  # View latest changes
 
 ### Managing Conflicts
 
-If you edit the same line in the same file from multiple mounts simultaneously, jj creates conflict markers:
+jj creates conflict markers when you edit the same line in the same file from multiple mounts simultaneously:
 
 ```
 <<<<<<< Conflict 1 of 1
@@ -313,9 +313,9 @@ This is version B
 
 **To resolve:**
 1. Open the file in your editor
-2. Edit to keep the desired content (removing conflict markers)
+2. Edit to keep the desired content and remove conflict markers
 3. Save the file
-4. jj automatically creates a new revision with the resolution
+4. jj automatically creates a new revision with your resolution
 
 ### Inspecting Workspaces
 
@@ -329,7 +329,7 @@ jj workspace list
 
 **Backup your repos:**
 ```bash
-# All repo data is in ~/.jjfs/repos/
+# All repo data lives in ~/.jjfs/repos/
 tar -czf jjfs-backup.tar.gz ~/.jjfs/repos/
 ```
 
@@ -341,7 +341,7 @@ jjfs start
 
 ### Using with Git Directly
 
-You can interact with the underlying git repository:
+Interact with the underlying git repository directly:
 
 ```bash
 cd ~/.jjfs/repos/notes
@@ -352,7 +352,7 @@ git push origin main  # Manual push (daemon does this automatically)
 
 ### Mounting Inside Git Repositories
 
-If you mount a jjfs directory inside an existing git repository, jjfs will detect this and offer to add the mount to `.gitignore`:
+jjfs detects when you mount a directory inside an existing git repository and offers to add the mount to `.gitignore`:
 
 ```bash
 cd ~/my-git-project
@@ -360,7 +360,7 @@ jjfs open notes ./project-notes
 # jjfs offers to add '/project-notes' to .gitignore
 ```
 
-This prevents your jjfs-synced content from being tracked by the outer git repository. If you decline the automatic addition, remember to manually add the mount directory to `.gitignore` to avoid confusion.
+This prevents your jjfs-synced content from being tracked by the outer git repository. If you decline the automatic addition, add the mount directory to `.gitignore` manually to avoid confusion.
 
 ## Troubleshooting
 
@@ -398,7 +398,7 @@ jjfs start
 
 **Mount appears empty:**
 ```bash
-# Verify bindfs is working
+# Verify bindfs works
 mount | grep bindfs
 
 # Check if workspace exists
@@ -409,9 +409,9 @@ jjfs close /path/to/mount
 jjfs open <repo> /path/to/mount
 ```
 
-**Can't mount: "directory not empty":**
+**Mount fails with "directory not empty":**
 ```bash
-# jjfs requires mount point to be empty
+# jjfs requires an empty mount point
 # Either:
 # 1. Use a different directory
 # 2. Or move files out and try again
@@ -436,12 +436,12 @@ jjfs close /path/to/mount
 
 ### Sync Issues
 
-**Changes not syncing:**
+**Changes fail to sync:**
 ```bash
 # Check daemon status
 jjfs status
 
-# Check if watcher is running
+# Check if watcher runs
 ps aux | grep fswatch  # macOS
 ps aux | grep inotifywait  # Linux
 
@@ -452,13 +452,13 @@ tail -f ~/.jjfs/sync.log
 jjfs sync <repo>
 ```
 
-**Sync is slow:**
+**Sync runs slow:**
 ```bash
 # Check system resources
 top  # High CPU?
 df -h  # Disk full?
 
-# Reduce number of mounts if too many
+# Reduce mounts if you have too many
 jjfs list
 jjfs close /path/to/unnecessary/mount
 ```
@@ -476,7 +476,7 @@ chmod -R u+rw ~/.jjfs/
 
 ### Remote Sync Issues
 
-**Push/pull failing:**
+**Push or pull fails:**
 ```bash
 # Test git access manually
 cd ~/.jjfs/repos/<repo>
@@ -492,25 +492,25 @@ jjfs remote add <correct-url> --repo=<name>
 
 ## FAQ
 
-### Q: How is this different from Dropbox/iCloud?
+### Q: How does this differ from Dropbox or iCloud?
 
-**A:** jjfs is designed for local multi-mount synchronization with version control. Unlike cloud services:
-- Syncs between local directories instantly (<2s)
-- Full version history via Jujutsu
+**A:** jjfs synchronizes local directories instantly with full version control. Unlike cloud services:
+- Syncs between local directories in under 2 seconds
+- Maintains full version history via Jujutsu
 - Works offline (no cloud required)
-- Optional git remote for backup/sharing
-- Designed for text files and code
+- Supports optional git remote for backup and sharing
+- Optimizes for text files and code
 
 ### Q: Can I use this with binary files?
 
-**A:** Yes, but jjfs (and Jujutsu) are optimized for text files. Binary files work but:
-- Take more storage space
-- Don't merge well (conflicts harder to resolve)
-- Version history less useful
+**A:** Yes, but jjfs (and Jujutsu) optimize for text files. Binary files work but:
+- Consume more storage space
+- Merge poorly (conflicts are harder to resolve)
+- Provide less useful version history
 
 ### Q: What happens if I edit the same file in two mounts at once?
 
-**A:** Jujutsu creates conflict markers in the file. You'll see both versions and can choose which to keep or merge them manually.
+**A:** Jujutsu creates conflict markers in the file. You see both versions and can choose which to keep or merge them manually.
 
 ### Q: Can I have multiple repos?
 
@@ -521,17 +521,17 @@ jjfs init personal
 jjfs init code
 ```
 
-Each repo is independent.
+Each repo operates independently.
 
 ### Q: How much disk space does this use?
 
-**A:** Each mount is a lightweight jj workspace (~50KB overhead). The repo stores all history, which depends on your file sizes and edit frequency. Use `du -sh ~/.jjfs/repos/<name>` to check.
+**A:** Each mount creates a lightweight jj workspace with approximately 50KB overhead. The repo stores all history, which depends on your file sizes and edit frequency. Check usage with `du -sh ~/.jjfs/repos/<name>`.
 
 ### Q: Can I use this for large files or many files?
 
 **A:** jjfs works best with:
-- Small to medium files (< 10MB each)
-- Moderate file counts (< 10,000 files)
+- Small to medium files (under 10MB each)
+- Moderate file counts (under 10,000 files)
 - Text-based content
 
 For large binary files or massive directories, consider specialized solutions.
@@ -539,9 +539,9 @@ For large binary files or massive directories, consider specialized solutions.
 ### Q: Is my data safe?
 
 **A:** 
-- All changes are versioned in Jujutsu (can rollback)
-- Use remotes for off-machine backup
-- jjfs doesn't delete data (only creates new versions)
+- Jujutsu versions all changes (you can rollback)
+- Remotes provide off-machine backup
+- jjfs creates new versions instead of deleting data
 - Regular backups recommended: `tar -czf backup.tar.gz ~/.jjfs/repos/`
 
 ### Q: Can I use this in production?
@@ -550,7 +550,7 @@ For large binary files or massive directories, consider specialized solutions.
 - Test thoroughly with your workflow
 - Always configure remote backups
 - Monitor daemon logs
-- Have a backup strategy
+- Maintain a backup strategy
 
 ### Q: How do I uninstall?
 
@@ -570,25 +570,25 @@ rm -rf ~/.jjfs/
 
 ### Q: Does this work over a network?
 
-**A:** No. jjfs is for local mounts only. For network sync:
+**A:** No. jjfs creates local mounts only. For network sync:
 1. Use jjfs locally on each machine
 2. Configure git remotes
-3. Daemon syncs via git push/pull
+3. Daemon syncs via git push and pull
 
 ### Q: What if the daemon crashes while I'm editing?
 
-**A:** Your files are safe in the workspace. When daemon restarts:
+**A:** Your files remain safe in the workspace. When the daemon restarts:
 1. Uncommitted changes remain in the workspace
-2. Next file change triggers a commit
+2. The next file change triggers a commit
 3. Sync resumes normally
 
-No data is lost.
+jjfs loses no data.
 
 ## Getting Help
 
-- **Issues/Bugs**: Open an issue on GitHub
+- **Issues or Bugs**: Open an issue on GitHub
 - **Questions**: Check this guide and FAQ first
-- **Logs**: Always include logs from `~/.jjfs/sync.log` when reporting issues
+- **Logs**: Always include logs from `~/.jjfs/sync.log` when you report issues
 
 ## Best Practices
 
@@ -596,9 +596,9 @@ No data is lost.
 2. **Use remotes**: Always configure git remotes for important data
 3. **Monitor logs**: Occasionally check `~/.jjfs/sync.log` for errors
 4. **Clean up**: Close mounts you're not using
-5. **Backup**: Regular backups of `~/.jjfs/repos/`
-6. **Text files**: Works best with text-based content
-7. **Don't edit workspaces directly**: Always use mount points, not `~/.jjfs/repos/*/workspaces/`
+5. **Backup**: Back up `~/.jjfs/repos/` regularly
+6. **Text files**: Use jjfs primarily for text-based content
+7. **Use mount points**: Always edit via mount points, never directly in `~/.jjfs/repos/*/workspaces/`
 
 ## What's Next?
 
