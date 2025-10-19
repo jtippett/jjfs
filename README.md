@@ -1,6 +1,6 @@
 # jjfs - Eventually Consistent Multi-Mount Filesystem
 
-FUSE-based filesystem that mounts multiple directories as live, eventually-consistent views of the same Jujutsu repository.
+NFS-based filesystem that mounts multiple directories as live, eventually-consistent views of the same Jujutsu repository.
 
 ## Features
 
@@ -10,11 +10,13 @@ FUSE-based filesystem that mounts multiple directories as live, eventually-consi
 - **Remote backup:** Push and pull to GitHub or GitLab
 - **Cross-platform:** Runs on macOS and Linux
 - **Git-aware:** Detects git repos and offers to update .gitignore
+- **No external dependencies:** Built-in NFS server, no FUSE or kernel extensions required
+- **Easy repo management:** Import existing git repos or create new jj repos with simple commands
 
 ## Status
 
-**Version:** 0.1.0
-**Status:** Working beta
+**Version:** 0.2.0
+**Status:** Production ready (with known NFS unmount caveat on macOS)
 
 jjfs provides a stable foundation for multi-location file synchronization using Jujutsu's workspace feature. The sync engine handles multiple concurrent mounts and resolves conflicts gracefully.
 
@@ -39,10 +41,10 @@ brew install jjfs
 #### Requirements
 
 - Crystal 1.10+
+- Rust toolchain (for building jjfs-nfs)
 - Jujutsu (`jj`) - [Install guide](https://github.com/martinvonz/jj#installation)
-- bindfs (FUSE filesystem for pass-through mounting)
 - **macOS:** fswatch (`brew install fswatch`)
-- **Linux:** inotify (built-in), bindfs (`apt-get install bindfs` or `yum install bindfs`)
+- **Linux:** inotify (built-in)
 
 #### Build Steps
 
@@ -54,13 +56,20 @@ cd jjfs
 # Install dependencies (if any)
 shards install
 
-# Build release binaries
+# Build Rust NFS server
+cd jjfs-nfs
+cargo build --release
+cp target/release/jjfs-nfs ../bin/
+cd ..
+
+# Build Crystal binaries
 crystal build src/jjfs.cr -o bin/jjfs --release
 crystal build src/jjfsd.cr -o bin/jjfsd --release
 
 # Install to system (optional)
 sudo cp bin/jjfs /usr/local/bin/
 sudo cp bin/jjfsd /usr/local/bin/
+sudo cp bin/jjfs-nfs /usr/local/bin/
 ```
 
 ### Setup
@@ -79,10 +88,16 @@ jjfs init
 ## Quick Start
 
 ```bash
-# Initialize a repo
-jjfs init my-notes
+# Create a new repo
+jjfs new my-notes
 
-# Open the repo in multiple locations
+# Or import an existing git repo
+jjfs import https://github.com/user/notes.git
+
+# View available repos
+jjfs repos
+
+# Open the repo in multiple locations (requires sudo password for NFS mount)
 jjfs open my-notes ~/Documents/notes
 jjfs open my-notes ~/Desktop/quick-notes
 
@@ -92,10 +107,7 @@ echo "Hello world" > ~/Documents/notes/hello.txt
 cat ~/Desktop/quick-notes/hello.txt
 # Output: Hello world
 
-# Add a remote for backup (optional)
-jjfs remote add git@github.com:user/my-notes.git --repo=my-notes
-
-# View all mounts
+# View all mounts with status
 jjfs list
 
 # Close a mount when done
@@ -106,17 +118,33 @@ jjfs close ~/Desktop/quick-notes
 
 ### Commands
 
+**Repo Management:**
 ```bash
-jjfs init [name]              # Initialize a repo (default: "default")
-jjfs open <repo> [path]       # Open repo at path (default: ./<repo>)
-jjfs close <path>             # Close mount at path
-jjfs list                     # List all mounts
-jjfs status                   # Show daemon status
-jjfs start                    # Start daemon
-jjfs stop                     # Stop daemon
-jjfs sync [repo]              # Force sync (default: all repos)
-jjfs remote add <url>         # Add remote for backup
-jjfs install                  # Install system service
+jjfs new <name>                    # Create new jj repo
+jjfs import <git-url> [name]       # Import existing git repo
+jjfs repos                         # List all available repos
+jjfs init [name]                   # Initialize a repo (default: "default")
+```
+
+**Mount Management:**
+```bash
+jjfs open <repo> [path]            # Open repo at path (default: ./<repo>)
+jjfs close <path>                  # Close mount at path
+jjfs list                          # List all mounts with status
+```
+
+**Daemon:**
+```bash
+jjfs status                        # Show daemon status
+jjfs start                         # Start daemon
+jjfs stop                          # Stop daemon
+```
+
+**Other:**
+```bash
+jjfs sync [repo]                   # Force sync (default: all repos)
+jjfs remote add <url> [--repo=name]
+jjfs install                       # Install system service
 ```
 
 ### How It Works

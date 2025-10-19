@@ -1,0 +1,8 @@
+# Rust build artifacts
+/target/
+
+# Cargo lock file (optional - some people commit this, but for a binary it's typical to ignore)
+# Cargo.lock
+
+# macOS
+.DS_Store

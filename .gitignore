@@ -1,6 +1,21 @@
+# Crystal build artifacts
 /bin/
 /lib/
 /.shards/
 *.dwarf
+
+# Rust build artifacts (jjfs-nfs)
+jjfs-nfs/target/
+
+# macOS
 .DS_Store
+
+# Generated/temporary files
 /homebrew-tap/
+skills/
+test_sync*.sh
+
+# Documentation/notes (may want to commit some of these later)
+*_SUMMARY.md
+NEXT_STEPS.md
+FSKIT_SETUP.md

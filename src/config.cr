@@ -20,8 +20,10 @@ module JJFS
     property repo : String
     property path : String
     property workspace : String
+    property nfs_pid : Int64?
+    property nfs_port : Int32?
 
-    def initialize(@id : String, @repo : String, @path : String, @workspace : String)
+    def initialize(@id : String, @repo : String, @path : String, @workspace : String, @nfs_pid : Int64? = nil, @nfs_port : Int32? = nil)
     end
   end
 

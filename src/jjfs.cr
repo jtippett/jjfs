@@ -3,7 +3,7 @@ require "./config"
 require "./storage"
 
 module JJFS
-  VERSION = "0.1.2"
+  VERSION = "0.2.0"
 end
 
 JJFS::CLI.run(ARGV)

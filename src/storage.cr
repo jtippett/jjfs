@@ -61,5 +61,9 @@ module JJFS
     def persist_config
       save_config
     end
+
+    def reload_config
+      @config = load_config
+    end
   end
 end

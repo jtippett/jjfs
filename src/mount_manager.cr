@@ -1,5 +1,6 @@
 require "uuid"
 require "./storage"
+require "./nfs_server"
 
 module JJFS
   class MountManager
@@ -49,21 +50,28 @@ module JJFS
         end
       end
 
-      # Mount with bindfs (pass-through)
-      error_io = IO::Memory.new
-      begin
-        result = Process.run("bindfs", [workspace_path, full_path],
-                           output: Process::Redirect::Pipe,
-                           error: error_io)
+      # Start NFS server for the workspace
+      nfs_server = NFSServer.new(workspace_path)
+      unless nfs_server.start
+        puts "Error: Failed to start NFS server"
+        Dir.delete(full_path) if Dir.exists?(full_path)
+        return nil
+      end
 
-        unless result.success?
-          puts "Error: Failed to mount with bindfs: #{error_io.to_s}"
-          return nil
-        end
-      rescue ex : File::NotFoundError
-        puts "Error: bindfs not found. Please install bindfs:"
-        puts "  macOS: brew install --cask macfuse && brew tap gromgit/fuse && brew install gromgit/fuse/bindfs-mac"
-        puts "  Linux: apt-get install bindfs (or yum install bindfs)"
+      # Mount via NFS (requires sudo password)
+      puts "Mounting via NFS (sudo password required)..."
+      mount_options = "nolocks,vers=3,tcp,port=#{nfs_server.port},mountport=#{nfs_server.port}"
+      error_io = IO::Memory.new
+
+      result = Process.run("sudo", ["mount_nfs", "-o", mount_options, "localhost:/", full_path],
+                         output: Process::Redirect::Pipe,
+                         error: error_io,
+                         input: Process::Redirect::Close)
+
+      unless result.success?
+        puts "Error: Failed to mount via NFS: #{error_io.to_s}"
+        nfs_server.stop
+        Dir.delete(full_path) if Dir.exists?(full_path)
         return nil
       end
 
@@ -72,7 +80,9 @@ module JJFS
         id: workspace_id,
         repo: repo_name,
         path: full_path,
-        workspace: workspace_path
+        workspace: workspace_path,
+        nfs_pid: nfs_server.pid,
+        nfs_port: nfs_server.port
       )
 
       @storage.config.mounts << mount_config
@@ -81,7 +91,7 @@ module JJFS
       mount_config
     end
 
-    def unmount(mount_path : String) : Bool
+    def unmount(mount_path : String, timeout : Time::Span = 10.seconds) : Bool
       full_path = File.expand_path(mount_path)
 
       mount = @storage.config.mounts.find { |m| m.path == full_path }
@@ -90,25 +100,66 @@ module JJFS
         return false
       end
 
-      # Unmount
-      error_io = IO::Memory.new
-      result = Process.run("umount", [full_path],
-                         output: Process::Redirect::Pipe,
-                         error: error_io)
-
-      unless result.success?
-        puts "Error: Failed to unmount: #{error_io.to_s}"
-        return false
+      # Stop NFS server first to avoid hanging unmount
+      if pid = mount.nfs_pid
+        begin
+          Process.signal(Signal::TERM, pid.to_i)
+          # Give it a moment to shutdown gracefully
+          sleep 0.5.seconds
+        rescue
+          # Process might already be dead
+        end
       end
 
-      # Remove from config
+      # Try unmount with timeout
+      puts "Unmounting #{full_path}..."
+      channel = Channel(Bool).new
+
+      spawn do
+        error_io = IO::Memory.new
+        result = Process.run("sudo", ["umount", "-f", full_path],
+                           output: Process::Redirect::Pipe,
+                           error: error_io,
+                           input: Process::Redirect::Close)
+        channel.send(result.success?)
+      end
+
+      success = false
+      select
+      when result = channel.receive
+        success = result
+      when timeout(timeout)
+        puts "Warning: Unmount command timed out after #{timeout.total_seconds}s"
+        puts "The mount may still be active. This is a known macOS NFS issue."
+        puts ""
+        puts "Recovery options:"
+        puts "  1. Try again: jjfs close #{full_path}"
+        puts "  2. Force unmount: sudo umount -f #{full_path}"
+        puts "  3. Reboot if mount is stuck"
+        puts ""
+        puts "Cleaning up NFS server and config anyway..."
+
+        # Even if unmount hangs, we should clean up what we can
+        success = false
+      end
+
+      unless success
+        puts "Note: Removing mount from jjfs config, but filesystem may still be mounted."
+        puts "Check with: mount | grep jjfs"
+      end
+
+      # Always clean up config and directory, even if unmount failed
       @storage.config.mounts.reject! { |m| m.path == full_path }
       @storage.persist_config
 
-      # Remove mount point directory
-      Dir.delete(full_path) if Dir.exists?(full_path)
+      # Try to remove mount point directory (will fail if still mounted)
+      begin
+        Dir.delete(full_path) if Dir.exists?(full_path)
+      rescue
+        # Directory might still be in use
+      end
 
-      true
+      success
     end
   end
 end

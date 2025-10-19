@@ -1,5 +1,8 @@
 require "option_parser"
 require "./commands/init"
+require "./commands/new"
+require "./commands/import"
+require "./commands/repos"
 require "./commands/status"
 require "./commands/open"
 require "./commands/close"
@@ -32,6 +35,12 @@ module JJFS
       case cmd
       when "init"
         @command = :init
+      when "new"
+        @command = :new
+      when "import"
+        @command = :import
+      when "repos"
+        @command = :repos
       when "open"
         @command = :open
       when "close"
@@ -68,6 +77,33 @@ module JJFS
         storage.ensure_directories
         repo_name = cli.args.first? || "default"
         cmd = Commands::Init.new(storage, repo_name)
+        exit(cmd.execute ? 0 : 1)
+      when :new
+        storage = Storage.new
+        storage.ensure_directories
+        repo_name = cli.args.first?
+        unless repo_name
+          puts "Error: repo name required"
+          puts "Usage: jjfs new <name>"
+          exit(1)
+        end
+        cmd = Commands::New.new(storage, repo_name)
+        exit(cmd.execute ? 0 : 1)
+      when :import
+        storage = Storage.new
+        storage.ensure_directories
+        git_url = cli.args.first?
+        unless git_url
+          puts "Error: git URL required"
+          puts "Usage: jjfs import <git-url> [name]"
+          exit(1)
+        end
+        repo_name = cli.args[1]?
+        cmd = Commands::Import.new(storage, git_url, repo_name)
+        exit(cmd.execute ? 0 : 1)
+      when :repos
+        storage = Storage.new
+        cmd = Commands::Repos.new(storage)
         exit(cmd.execute ? 0 : 1)
       when :open
         storage = Storage.new
@@ -120,16 +156,26 @@ module JJFS
         jjfs <command> [args]
 
       COMMANDS:
-        init [name]              Initialize a repo (default: "default")
-        open <repo> [path]       Open repo at path (default: ./<repo>)
-        close <path>             Close mount at path
-        list                     List all mounts
-        status                   Show daemon status
-        start                    Start daemon
-        stop                     Stop daemon
-        sync [repo]              Force sync (default: all repos)
-        remote add <url> [--repo=name]
-        install                  Install system service
+        Repo Management:
+          new <name>                    Create new jj repo
+          import <git-url> [name]       Import existing git repo
+          repos                         List all available repos
+          init [name]                   Initialize a repo (default: "default")
+
+        Mount Management:
+          open <repo> [path]            Open repo at path (default: ./<repo>)
+          close <path>                  Close mount at path
+          list                          List all mounts
+
+        Daemon:
+          status                        Show daemon status
+          start                         Start daemon
+          stop                          Stop daemon
+
+        Other:
+          sync [repo]                   Force sync (default: all repos)
+          remote add <url> [--repo=name]
+          install                       Install system service
       HELP
     end
   end

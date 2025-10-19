@@ -102,9 +102,61 @@ Potential enhancements for future versions:
 - Better multi-device setup workflow
 - Performance optimizations for large repositories
 
-## [Unreleased]
+## [0.2.0] - 2025-10-19
 
-No unreleased changes yet.
+### Added
+
+**NFS-based mounting**
+- Replaced bindfs/macFUSE with custom Rust NFS server
+- No kernel extensions or FUSE required
+- Built-in `jjfs-nfs` binary using NFSv3
+
+**New commands**
+- `jjfs new <name>` - Create new jj repository
+- `jjfs import <git-url> [name]` - Import existing git repo (auto-extracts name from URL)
+- `jjfs repos` - List all repositories with paths and remotes
+
+**Mount health checking**
+- Status shows actual mount state: `active`, `stale (server dead)`, `inactive`, `inconsistent`
+- Daemon reloads config from disk on status queries
+- Accurate repo and mount counts
+
+**UX improvements**
+- Categorized help text (Repo Management, Mount Management, Daemon)
+- Naming conflict detection on all repo commands
+- 10-second unmount timeout with recovery instructions
+
+### Changed
+
+**Breaking**
+- Removed bindfs dependency (use NFS)
+- Removed macFUSE dependency
+- New `jjfs-nfs` binary required
+
+**Mount operations**
+- `jjfs open` spawns NFS server and mounts via `mount_nfs`
+- Unmount kills NFS server first, times out after 10s
+- Config cleaned up even if unmount fails
+
+### Fixed
+
+- Status commands show correct counts by reloading config
+- Daemon has current view of repos and mounts
+- Detects mounts with dead NFS servers
+
+### Technical
+
+**Dependencies**
+- Added: Rust toolchain, nfsserve, tokio, clap, async-trait
+- Removed: bindfs, macFUSE
+
+**Architecture**
+- `jjfs-nfs`: Rust NFSv3 server with pass-through filesystem
+- `NFSServer` class: Manages server process, tracks PID/port
+- `MountManager`: Timeout-based unmount with cleanup
+- Config: Added `nfs_pid` and `nfs_port` fields
+
+**Known issue**: NFS unmount can hang on macOS (OS limitation). 10-second timeout mitigates.
 
 ---
 
