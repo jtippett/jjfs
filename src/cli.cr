@@ -1,4 +1,6 @@
 require "option_parser"
+require "./commands/init"
+require "./storage"
 
 module JJFS
   class CLI
@@ -54,7 +56,11 @@ module JJFS
 
       case cli.command
       when :init
-        puts "TODO: init #{cli.args.first? || "default"}"
+        storage = Storage.new
+        storage.ensure_directories
+        repo_name = cli.args.first? || "default"
+        cmd = Commands::Init.new(storage, repo_name)
+        exit(cmd.execute ? 0 : 1)
       when :open
         puts "TODO: open #{cli.args}"
       when :close
