@@ -1,0 +1,15 @@
+name: jjfs
+version: 0.1.0
+
+authors:
+  - James <your-email>
+
+crystal: 1.10.0
+
+targets:
+  jjfs:
+    main: src/jjfs.cr
+  jjfsd:
+    main: src/jjfsd.cr
+
+license: MIT
