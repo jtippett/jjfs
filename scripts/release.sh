@@ -99,6 +99,9 @@ class Jjfs < Formula
   end
 
   def install
+    # Create bin directory for build
+    mkdir_p "bin"
+
     # Build both binaries
     system "crystal", "build", "src/jjfs.cr", "-o", "bin/jjfs", "--release"
     system "crystal", "build", "src/jjfsd.cr", "-o", "bin/jjfsd", "--release"
@@ -116,6 +119,10 @@ class Jjfs < Formula
     doc.install "docs/user-guide.md"
   end
 
+  def post_install
+    ohai "jjfs installed successfully!"
+  end
+
   def caveats
     s = <<~EOS
       To get started:
@@ -125,6 +132,10 @@ class Jjfs < Formula
         4. Open a mount: jjfs open default
 
       Note: bindfs requires macFUSE to be installed separately.
+
+      After upgrading, restart the daemon to use the new version:
+        jjfs stop
+        jjfs start
 
       For more information, see:
         #{doc}/README.md
