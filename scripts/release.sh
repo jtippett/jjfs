@@ -90,25 +90,30 @@ class Jjfs < Formula
   depends_on "crystal"
   depends_on "jj"
 
+  depends_on "rust" => :build
+
   on_macos do
     depends_on "fswatch"
-  end
-
-  on_linux do
-    depends_on "bindfs"
   end
 
   def install
     # Create bin directory for build
     mkdir_p "bin"
 
-    # Build both binaries
+    # Build Rust NFS server
+    cd "jjfs-nfs" do
+      system "cargo", "build", "--release"
+      cp "target/release/jjfs-nfs", "../bin/"
+    end
+
+    # Build Crystal binaries
     system "crystal", "build", "src/jjfs.cr", "-o", "bin/jjfs", "--release"
     system "crystal", "build", "src/jjfsd.cr", "-o", "bin/jjfsd", "--release"
 
     # Install binaries
     bin.install "bin/jjfs"
     bin.install "bin/jjfsd"
+    bin.install "bin/jjfs-nfs"
 
     # Install templates for service installation
     prefix.install "templates"
@@ -124,18 +129,13 @@ class Jjfs < Formula
   end
 
   def caveats
-    s = <<~EOS
+    <<~EOS
       To get started:
-        1. Install macFUSE and bindfs:
-           brew install --cask macfuse
-           brew tap gromgit/fuse
-           brew install gromgit/fuse/bindfs-mac
+        1. Install the daemon service: jjfs install
+        2. Create a new repo: jjfs new my-notes
+        3. Open a mount: jjfs open my-notes ~/Documents/notes
 
-           Note: macFUSE 5.0.7+ uses FSKit (userspace) on macOS 13+, no kernel extension needed.
-
-        2. Install the daemon service: jjfs install
-        3. Initialize a repo: jjfs init
-        4. Open a mount: jjfs open default
+      Note: Mounting requires sudo password (normal macOS NFS behavior)
 
       After upgrading, restart the daemon to use the new version:
         jjfs stop
@@ -145,21 +145,6 @@ class Jjfs < Formula
         #{doc}/README.md
         #{doc}/user-guide.md
     EOS
-
-    on_linux do
-      s = <<~EOS
-        To get started:
-          1. Install the daemon service: jjfs install
-          2. Initialize a repo: jjfs init
-          3. Open a mount: jjfs open default
-
-        For more information, see:
-          #{doc}/README.md
-          #{doc}/user-guide.md
-      EOS
-    end
-
-    s
   end
 
   test do
