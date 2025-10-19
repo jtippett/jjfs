@@ -1,6 +1,8 @@
 require "option_parser"
 require "./commands/init"
 require "./commands/status"
+require "./commands/open"
+require "./commands/close"
 require "./storage"
 
 module JJFS
@@ -63,9 +65,20 @@ module JJFS
         cmd = Commands::Init.new(storage, repo_name)
         exit(cmd.execute ? 0 : 1)
       when :open
-        puts "TODO: open #{cli.args}"
+        storage = Storage.new
+        repo_name = cli.args.first? || "default"
+        path = cli.args[1]?
+        cmd = Commands::Open.new(storage, repo_name, path)
+        exit(cmd.execute ? 0 : 1)
       when :close
-        puts "TODO: close #{cli.args}"
+        storage = Storage.new
+        path = cli.args.first
+        unless path
+          puts "Error: path required"
+          exit(1)
+        end
+        cmd = Commands::Close.new(storage, path)
+        exit(cmd.execute ? 0 : 1)
       when :list
         puts "TODO: list mounts"
       when :status
