@@ -126,12 +126,16 @@ class Jjfs < Formula
   def caveats
     s = <<~EOS
       To get started:
-        1. Install bindfs: brew install --cask macfuse && brew install gromgit/fuse/bindfs-mac
+        1. Install macFUSE and bindfs:
+           brew install --cask macfuse
+           brew tap gromgit/fuse
+           brew install gromgit/fuse/bindfs-mac
+
+           Note: macFUSE 5.0.7+ uses FSKit (userspace) on macOS 13+, no kernel extension needed.
+
         2. Install the daemon service: jjfs install
         3. Initialize a repo: jjfs init
         4. Open a mount: jjfs open default
-
-      Note: bindfs requires macFUSE to be installed separately.
 
       After upgrading, restart the daemon to use the new version:
         jjfs stop

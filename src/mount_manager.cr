@@ -62,7 +62,7 @@ module JJFS
         end
       rescue ex : File::NotFoundError
         puts "Error: bindfs not found. Please install bindfs:"
-        puts "  macOS: brew install bindfs"
+        puts "  macOS: brew install --cask macfuse && brew tap gromgit/fuse && brew install gromgit/fuse/bindfs-mac"
         puts "  Linux: apt-get install bindfs (or yum install bindfs)"
         return nil
       end
