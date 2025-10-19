@@ -3,6 +3,7 @@ require "./commands/init"
 require "./commands/status"
 require "./commands/open"
 require "./commands/close"
+require "./commands/list"
 require "./commands/remote"
 require "./commands/install"
 require "./commands/start"
@@ -84,7 +85,9 @@ module JJFS
         cmd = Commands::Close.new(storage, path)
         exit(cmd.execute ? 0 : 1)
       when :list
-        puts "TODO: list mounts"
+        storage = Storage.new
+        cmd = Commands::List.new(storage)
+        exit(cmd.execute ? 0 : 1)
       when :status
         storage = Storage.new
         cmd = Commands::Status.new(storage)
