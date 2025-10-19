@@ -8,4 +8,4 @@ FUSE-based filesystem for eventually-consistent jj repository views.
 
 ## Documentation
 
-See `docs/plans/2025-10-19-jjfs-design.md` for full design.
+See `docs/plans/2025-10-19-jjfs-implementation.md` for full design.

@@ -1,5 +1,4 @@
 # CLI entry point for jjfs
-require "option_parser"
 
 module JJFS
   VERSION = "0.1.0"

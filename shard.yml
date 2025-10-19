@@ -2,7 +2,7 @@ name: jjfs
 version: 0.1.0
 
 authors:
-  - James <your-email>
+  - James <james@example.com>
 
 crystal: 1.10.0
 
